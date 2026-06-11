@@ -1,0 +1,412 @@
+﻿openapi: 3.1.0
+info:
+  title: Access Gate API - Smart Campus Operations Platform
+  version: 1.0.0
+  description: |
+    OpenAPI contract for team-gate service in FIT4110 Lab 03.
+    This API handles access event ingestion, access decision recording,
+    and event retrieval for integration testing with Prism/Postman/Newman.
+  contact:
+    name: team-gate
+    email: team-gate@example.edu.vn
+servers:
+  - url: http://localhost:4010
+    description: Prism mock server
+
+tags:
+  - name: health
+    description: Service health endpoints
+  - name: access-events
+    description: Access event ingestion and retrieval
+  - name: access-decisions
+    description: Access decision recording
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Health check
+      description: Check whether Access Gate service is alive and reachable.
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              examples:
+                ok:
+                  value:
+                    status: ok
+                    service: team-gate
+                    time: '2026-05-27T08:00:00Z'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /access-events:
+    post:
+      tags: [access-events]
+      summary: Create access event
+      description: Ingest a new access event produced by gate reader operation.
+      operationId: createAccessEvent
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessEventCreateRequest'
+            examples:
+              validEvent:
+                value:
+                  personId: SV001
+                  gateId: gate-main-01
+                  credentialId: RFID-2026-001
+                  decision: allow
+                  reason: valid_credential
+                  riskLevel: low
+                  eventTime: '2026-05-27T08:00:00Z'
+                  location: Building A - Main Gate
+      responses:
+        '201':
+          description: Access event created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessEvent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /access-decisions:
+    post:
+      tags: [access-decisions]
+      summary: Record access decision
+      description: Persist an allow/deny decision for a previously tracked access event.
+      operationId: createAccessDecision
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessDecisionCreateRequest'
+            examples:
+              allowDecision:
+                value:
+                  eventId: evt-20260527-0001
+                  personId: SV001
+                  gateId: gate-main-01
+                  credentialId: RFID-2026-001
+                  decision: allow
+                  reason: policy_matched
+                  riskLevel: low
+                  eventTime: '2026-05-27T08:00:01Z'
+                  location: Building A - Main Gate
+      responses:
+        '201':
+          description: Access decision recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessDecisionRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /access-events/{eventId}:
+    get:
+      tags: [access-events]
+      summary: Get access event by ID
+      description: Retrieve one access event using its unique event identifier.
+      operationId: getAccessEventById
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Access event detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessEvent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /access-events/latest:
+    get:
+      tags: [access-events]
+      summary: Get latest access events
+      description: Retrieve a recent page of access events ordered by newest first.
+      operationId: getLatestAccessEvents
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Latest access events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessEventPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 100
+      description: Correlation ID for tracing requests across services.
+    EventId:
+      name: eventId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^evt-[0-9]{8}-[0-9]{4}$'
+      example: evt-20260527-0001
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      description: Maximum number of recent access events.
+
+  schemas:
+    HealthStatus:
+      type: object
+      additionalProperties: false
+      required: [status, service, time]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        service:
+          type: string
+          example: team-gate
+        time:
+          type: string
+          format: date-time
+
+    DecisionType:
+      type: string
+      enum: [allow, deny]
+
+    RiskLevel:
+      type: string
+      enum: [low, medium, high]
+
+    AccessReason:
+      type: string
+      enum:
+        - valid_credential
+        - invalid_credential
+        - expired_credential
+        - policy_matched
+        - policy_denied
+        - risk_blocked
+
+    AccessEventBase:
+      type: object
+      required:
+        - personId
+        - gateId
+        - credentialId
+        - decision
+        - reason
+        - riskLevel
+        - eventTime
+        - location
+      properties:
+        personId:
+          type: string
+          minLength: 1
+          maxLength: 64
+          example: SV001
+        gateId:
+          type: string
+          pattern: '^gate-[a-z0-9-]+$'
+          example: gate-main-01
+        credentialId:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: RFID-2026-001
+        decision:
+          $ref: '#/components/schemas/DecisionType'
+        reason:
+          $ref: '#/components/schemas/AccessReason'
+        riskLevel:
+          $ref: '#/components/schemas/RiskLevel'
+        eventTime:
+          type: string
+          format: date-time
+          example: '2026-05-27T08:00:00Z'
+        location:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Building A - Main Gate
+
+    AccessEventCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/AccessEventBase'
+
+    AccessEvent:
+      allOf:
+        - $ref: '#/components/schemas/AccessEventBase'
+        - type: object
+          required: [eventId, createdAt]
+          properties:
+            eventId:
+              type: string
+              pattern: '^evt-[0-9]{8}-[0-9]{4}$'
+              example: evt-20260527-0001
+            createdAt:
+              type: string
+              format: date-time
+              example: '2026-05-27T08:00:00Z'
+
+    AccessDecisionCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/AccessEventBase'
+        - type: object
+          required: [eventId]
+          properties:
+            eventId:
+              type: string
+              pattern: '^evt-[0-9]{8}-[0-9]{4}$'
+              example: evt-20260527-0001
+
+    AccessDecisionRecord:
+      allOf:
+        - $ref: '#/components/schemas/AccessDecisionCreateRequest'
+        - type: object
+          required: [decisionId, decidedAt]
+          properties:
+            decisionId:
+              type: string
+              pattern: '^dec-[0-9]{8}-[0-9]{4}$'
+              example: dec-20260527-0001
+            decidedAt:
+              type: string
+              format: date-time
+              example: '2026-05-27T08:00:01Z'
+
+    AccessEventPage:
+      type: object
+      additionalProperties: false
+      required: [data, total]
+      properties:
+        data:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/AccessEvent'
+        total:
+          type: integer
+          minimum: 0
+          example: 1
+
+    ProblemDetails:
+      type: object
+      additionalProperties: false
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri
+          example: https://smart-campus.local/errors/validation
+        title:
+          type: string
+          example: Invalid request
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+          example: 400
+        detail:
+          type: string
+          example: credentialId is required.
+        instance:
+          type: string
+          format: uri-reference
+          example: /access-events
+        correlationId:
+          type: string
+          example: corr-20260527-0001
+
+  responses:
+    BadRequest:
+      description: Invalid request syntax or invalid parameters.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    NotFound:
+      description: Resource not found.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Conflict:
+      description: Conflict with existing data or idempotency constraints.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    UnprocessableEntity:
+      description: Validation passed syntax but failed business rules.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    InternalServerError:
+      description: Unexpected server error.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'

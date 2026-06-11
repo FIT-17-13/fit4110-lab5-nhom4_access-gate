@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="FIT4110 Lab03 - Team Gate Collection" tests="17" time="0.190">
+  <testsuite name="01_Functional / GET Health" id="59aa8a37-5adc-41f1-b5e2-baf61d6ed39f" timestamp="2026-06-11T03:52:24.387Z" tests="1" failures="0" errors="0" time="0.040">
+    <testcase name="Expected status 200" time="0.040" classname="01FunctionalGetHealth"/>
+  </testsuite>
+  <testsuite name="01_Functional / POST Create Access Event Valid" id="21315679-ffe1-439d-be0c-bcde05ca836f" timestamp="2026-06-11T03:52:24.387Z" tests="2" failures="0" errors="0" time="0.014">
+    <testcase name="Expected status 201 or 200" time="0.014" classname="01FunctionalPostCreateAccessEventValid"/>
+    <testcase name="Response has eventId" time="0.014" classname="01FunctionalPostCreateAccessEventValid"/>
+  </testsuite>
+  <testsuite name="01_Functional / POST Create Access Decision Allow" id="9b195ab2-4e6e-422d-9d28-e300e9a440ba" timestamp="2026-06-11T03:52:24.387Z" tests="3" failures="0" errors="0" time="0.012">
+    <testcase name="Expected status 200 or 201" time="0.012" classname="01FunctionalPostCreateAccessDecisionAllow"/>
+    <testcase name="Response has decision" time="0.012" classname="01FunctionalPostCreateAccessDecisionAllow"/>
+    <testcase name="decision is allow or deny" time="0.012" classname="01FunctionalPostCreateAccessDecisionAllow"/>
+  </testsuite>
+  <testsuite name="01_Functional / GET Access Event By Id" id="bfb5756d-0989-43d1-bfb7-32dbc923ebfc" timestamp="2026-06-11T03:52:24.387Z" tests="2" failures="0" errors="0" time="0.010">
+    <testcase name="Expected status 200" time="0.010" classname="01FunctionalGetAccessEventById"/>
+    <testcase name="Response has event information" time="0.010" classname="01FunctionalGetAccessEventById"/>
+  </testsuite>
+  <testsuite name="02_Auth / Auth - Valid Token" id="a38cb0e8-276e-4576-9389-387837be1f51" timestamp="2026-06-11T03:52:24.387Z" tests="1" failures="0" errors="0" time="0.010">
+    <testcase name="Expected status 200 or 201" time="0.010" classname="02AuthAuthValidToken"/>
+  </testsuite>
+  <testsuite name="02_Auth / Auth - Missing Token" id="365e24cb-bfd4-4eb2-b61c-92d734c95fc9" timestamp="2026-06-11T03:52:24.387Z" tests="1" failures="0" errors="0" time="0.003">
+    <testcase name="Expected status 401 or 403 when missing token" time="0.003" classname="02AuthAuthMissingToken"/>
+  </testsuite>
+  <testsuite name="02_Auth / Auth - Invalid Token" id="99962df7-cd2d-4dad-9459-1225c257066f" timestamp="2026-06-11T03:52:24.387Z" tests="1" failures="0" errors="0" time="0.003">
+    <testcase name="Local rejects invalid token" time="0.003" classname="02AuthAuthInvalidToken"/>
+  </testsuite>
+  <testsuite name="03_Negative / Negative - Missing credentialId" id="9c27c30d-5deb-40e5-a845-eefa0b8529bf" timestamp="2026-06-11T03:52:24.387Z" tests="2" failures="0" errors="0" time="0.008">
+    <testcase name="Expected status 400 or 422" time="0.008" classname="03NegativeNegativeMissingCredentialId"/>
+    <testcase name="Server returns ProblemDetails-like error" time="0.008" classname="03NegativeNegativeMissingCredentialId"/>
+  </testsuite>
+  <testsuite name="03_Negative / Negative - Invalid gateId" id="9a3074e2-e08e-45f2-a8ab-d3c233479a0e" timestamp="2026-06-11T03:52:24.387Z" tests="2" failures="0" errors="0" time="0.009">
+    <testcase name="Expected status 400, 404, or 422" time="0.009" classname="03NegativeNegativeInvalidGateId"/>
+    <testcase name="Server error response is meaningful" time="0.009" classname="03NegativeNegativeInvalidGateId"/>
+  </testsuite>
+  <testsuite name="03_Negative / Negative - Invalid payload type" id="cd50d5ec-9835-4af1-8e70-589477884978" timestamp="2026-06-11T03:52:24.387Z" tests="2" failures="0" errors="0" time="0.009">
+    <testcase name="Expected status 400 or 422" time="0.009" classname="03NegativeNegativeInvalidPayloadType"/>
+    <testcase name="Server validates payload type" time="0.009" classname="03NegativeNegativeInvalidPayloadType"/>
+  </testsuite>
+  <testsuite name="03_Negative / Negative - Unknown card or invalid card" id="31c194ff-fb65-4869-85b0-41f608380f8b" timestamp="2026-06-11T03:52:24.387Z" tests="2" failures="0" errors="0" time="0.007">
+    <testcase name="Local must reject invalid card" time="0.007" classname="03NegativeNegativeUnknownCardOrInvalidCard"/>
+    <testcase name="Response includes rejection reason or ProblemDetails (when provided)" time="0.007" classname="03NegativeNegativeUnknownCardOrInvalidCard"/>
+  </testsuite>
+  <testsuite name="04_Boundary_Reliability / Boundary - riskLevel high behavior" id="1b53f6ce-f878-45d9-a772-625084f75bb3" timestamp="2026-06-11T03:52:24.387Z" tests="2" failures="0" errors="0" time="0.013">
+    <testcase name="Status matches documented behavior for high risk" time="0.013" classname="04BoundaryReliabilityBoundaryRiskLevelHighBehavior"/>
+    <testcase name="Response has clear rule outcome" time="0.013" classname="04BoundaryReliabilityBoundaryRiskLevelHighBehavior"/>
+  </testsuite>
+  <testsuite name="04_Boundary_Reliability / Boundary - credentialId too long" id="2f56031e-8fdb-4f19-a63c-8c850fbb0ca9" timestamp="2026-06-11T03:52:24.387Z" tests="2" failures="0" errors="0" time="0.008">
+    <testcase name="Expected status 400 or 422 for too-long credentialId" time="0.008" classname="04BoundaryReliabilityBoundaryCredentialIdTooLong"/>
+    <testcase name="Validation error detail is returned" time="0.008" classname="04BoundaryReliabilityBoundaryCredentialIdTooLong"/>
+  </testsuite>
+  <testsuite name="04_Boundary_Reliability / Boundary - gateId at max length edge" id="7c52098a-dd51-4121-abc1-069afd073e9b" timestamp="2026-06-11T03:52:24.387Z" tests="2" failures="0" errors="0" time="0.013">
+    <testcase name="Status follows boundary rule for gateId length" time="0.013" classname="04BoundaryReliabilityBoundaryGateIdAtMaxLengthEdge"/>
+    <testcase name="Server response is meaningful" time="0.013" classname="04BoundaryReliabilityBoundaryGateIdAtMaxLengthEdge"/>
+  </testsuite>
+  <testsuite name="04_Boundary_Reliability / Reliability - rate limit probe" id="fd89c00c-8259-4e83-bfd6-9b87ea5db232" timestamp="2026-06-11T03:52:24.387Z" tests="2" failures="0" errors="0" time="0.010">
+    <testcase name="Rate limit behavior is observable" time="0.010" classname="04BoundaryReliabilityReliabilityRateLimitProbe"/>
+    <testcase name="If 429 appears, response includes error details" time="0.010" classname="04BoundaryReliabilityReliabilityRateLimitProbe"/>
+  </testsuite>
+  <testsuite name="05_Consumer_side_Smoke / Smoke - Access Gate can call dependency health endpoint" id="5451b5c9-9c7c-46f5-8893-b571bcb49f04" timestamp="2026-06-11T03:52:24.387Z" tests="2" failures="0" errors="0" time="0.007">
+    <testcase name="Status code is 2xx" time="0.007" classname="05ConsumerSideSmokeSmokeAccessGateCanCallDependencyHealthEndpoint"/>
+    <testcase name="Response has minimum health fields" time="0.007" classname="05ConsumerSideSmokeSmokeAccessGateCanCallDependencyHealthEndpoint"/>
+  </testsuite>
+  <testsuite name="06_Local_only_NonFunctional / Local-only - access decisions latency check" id="ffdd77dd-963d-40ac-9289-0a0f3b87a068" timestamp="2026-06-11T03:52:24.387Z" tests="1" failures="0" errors="0" time="0.014">
+    <testcase name="Response time is below 1000ms on local service" time="0.014" classname="06LocalOnlyNonFunctionalLocalOnlyAccessDecisionsLatencyCheck"/>
+  </testsuite>
+</testsuites>

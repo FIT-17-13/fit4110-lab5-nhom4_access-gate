@@ -1,19 +1,19 @@
-# RUN_COMPOSE.md – Hướng dẫn chạy Lab 05
+# RUN_COMPOSE.md – Hướng dẫn chạy Lab 05 (Access Gate)
 
-Tài liệu này hướng dẫn người khác clone repo sạch và chạy lại stack Compose của Lab 05.
+Tài liệu này hướng dẫn người khác clone repo sạch và chạy lại stack Compose của Lab 05 (Access Gate API).
 
 ---
 
-## 1. Clone repo
+## 1. Clone repo
 
 ```bash
-git clone <repo-url>
-cd FIT4110_lab05_docker_compose_readiness
+git clone https://github.com/FIT-17-13/fit4110-lab5-nhom4_access-gate.git
+cd fit4110-lab5-nhom4_access-gate
 ```
 
 ---
 
-## 2. Cài dependencies cho Newman/Prism/Spectral (tuỳ chọn)
+## 2. Cài dependencies cho Newman/Prism/Spectral (tuỳ chọn)
 
 ```bash
 npm install
@@ -21,21 +21,24 @@ npm install
 
 ---
 
-## 3. Build & chạy stack Docker Compose
+## 3. Build & chạy stack Docker Compose
 
 ```bash
-# Copy .env.example sang .env và chỉnh sửa nếu cần
+# Tạo file .env từ .env.example
 cp .env.example .env
 
-# Build images (nếu chưa có) và khởi động các container trong nền
+# Tạo external network 'class-net' nếu chưa có trên hệ thống của bạn
+docker network create class-net
+
+# Build images và khởi động các container trong nền
 docker compose up -d --build
 ```
 
 Lệnh trên sẽ tạo các container:
 
-- `fit4110-db-lab05` (PostgreSQL)
-- `fit4110-ai-lab05` (AI service mẫu chạy port 9000)
-- `fit4110-api-lab05` (API FastAPI trên port 8000)
+- `fit4110-db-lab05` (PostgreSQL - CSDL lưu trữ sự kiện/quyết định cổng)
+- `fit4110-ai-lab05` (AI service mẫu chạy port 9000 làm kiểm tra chính sách hoặc đối khớp khuôn mặt)
+- `fit4110-api-lab05` (Access Gate API FastAPI trên port 8000)
 
 Theo dõi log:
 
@@ -46,14 +49,14 @@ docker compose logs -f
 Sau vài giây, kiểm tra health của mỗi service:
 
 ```bash
-# API
+# API (Kiểm tra xem API có kết nối thành công tới PostgreSQL và AI service chưa)
 curl http://localhost:8000/health
 
 # AI service
 curl http://localhost:9000/health
 
 # DB readiness
-docker exec -it fit4110-db-lab05 pg_isready -U $POSTGRES_USER
+docker exec -it fit4110-db-lab05 pg_isready -U access_gate_user -d access_gate_db
 ```
 
 Bạn cũng có thể truy cập endpoint `/predict` của AI service để xem kết quả mẫu:
@@ -64,7 +67,7 @@ curl -X POST http://localhost:9000/predict
 
 ---
 
-## 4. Chạy Newman test trên stack Compose (tuỳ chọn)
+## 4. Chạy Newman test trên stack Compose (tuỳ chọn)
 
 ```bash
 npm run test:compose
@@ -79,7 +82,7 @@ reports/newman-lab05-compose.html
 
 ---
 
-## 5. Dừng stack
+## 5. Dừng stack
 
 Khi không cần nữa, dừng và xoá các container bằng:
 
@@ -95,7 +98,7 @@ docker compose down -v
 
 ---
 
-## 6. Lệnh nhanh
+## 6. Lệnh nhanh
 
 Bạn có thể dùng Makefile:
 
@@ -103,11 +106,12 @@ Bạn có thể dùng Makefile:
 make compose-up
 make compose-down
 make logs
+make test-compose
 ```
 
 ---
 
-## 7. Mẹo gỡ lỗi
+## 7. Mẹo gỡ lỗi
 
 - Sử dụng `docker compose ps` để xem trạng thái container.
 - Nếu API trả lỗi kết nối DB, hãy kiểm tra biến môi trường `POSTGRES_*` trong `.env` và đảm bảo DB đã sẵn sàng (`pg_isready`).
